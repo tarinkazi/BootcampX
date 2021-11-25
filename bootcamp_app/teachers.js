@@ -6,6 +6,10 @@ const pool = new Pool({
   host: 'localhost',
   database: 'bootcampx'
 });
+const cohortName = process.argv[2];
+const limit = process.argv[3] || 5;
+// Store all potentially malicious values in an array.
+const values = [`%${cohortName}%`, limit];  
 const comm = `SELECT  DISTINCT cohorts.name as cohort,teachers.name as teacher
 FROM teachers
 JOIN assistance_requests
@@ -14,11 +18,11 @@ JOIN students
 ON students.id = student_id
 JOIN cohorts
 ON cohorts.id = cohort_id
-WHERE cohorts.name LIKE '%${process.argv[2]}%'
+WHERE cohorts.name LIKE $1
 ORDER BY teacher
- LIMIT ${process.argv[3] || 5};
+ LIMIT $2;
 `
-pool.query(comm)
+pool.query(comm, values)
 .then(result =>{ 
   result.rows.forEach(user =>{
     console.log(`${user.cohort}:  ${user.teacher} and was in the cohort`);
